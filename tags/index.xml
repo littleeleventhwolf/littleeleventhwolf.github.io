@@ -6,7 +6,7 @@
     <description>Recent content in Tags on 技术札记</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 21 May 2022 17:28:50 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 06 Aug 2023 17:32:21 +0800</lastBuildDate>
     
 	<atom:link href="http://localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" />
     
@@ -14,7 +14,7 @@
     <item>
       <title>flink</title>
       <link>http://localhost:1313/tags/flink/</link>
-      <pubDate>Sat, 21 May 2022 17:28:50 +0800</pubDate>
+      <pubDate>Sun, 06 Aug 2023 17:32:21 +0800</pubDate>
       
       <guid>http://localhost:1313/tags/flink/</guid>
       <description></description>
