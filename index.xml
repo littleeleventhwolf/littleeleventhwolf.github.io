@@ -6,10 +6,19 @@
     <description>Recent content on 技术札记</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 21 May 2022 17:28:50 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 06 Aug 2023 17:32:21 +0800</lastBuildDate>
     
 	<atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Flink的TM内存计算逻辑</title>
+      <link>http://localhost:1313/post/flink%E7%9A%84tm%E5%86%85%E5%AD%98%E8%AE%A1%E7%AE%97%E9%80%BB%E8%BE%91/</link>
+      <pubDate>Sun, 06 Aug 2023 17:32:21 +0800</pubDate>
+      
+      <guid>http://localhost:1313/post/flink%E7%9A%84tm%E5%86%85%E5%AD%98%E8%AE%A1%E7%AE%97%E9%80%BB%E8%BE%91/</guid>
+      <description>TM 内存模型 Flink TM内存模型 描述 TM 内存配置的类 描述 TM 或 JM 的 JVM 进程内存配置的公共配置类 由上图可知，JM 也是使用该类来描述内存配置。 在 TaskExecutorProcessUtils 中定义了 TM 的</description>
+    </item>
     
     <item>
       <title>[译]Flink中3个影响有状态函数和算子性能的重要因素</title>
