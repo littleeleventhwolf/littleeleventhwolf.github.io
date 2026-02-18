@@ -16,14 +16,16 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="小十一狼" /><meta name="description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind 这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction" /><meta name="keywords" content="flink" />
+<meta name="author" content="小十一狼" /><meta name="description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind
+这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction算子中可以访问流处理应用中基础的构建块：
+" /><meta name="keywords" content="flink" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.67.1 with theme even" />
+<meta name="generator" content="Hugo 0.155.3 with theme even" />
 
 
 <link rel="canonical" href="http://localhost:1313/post/%E8%AF%91%E7%89%A2%E8%AE%B04%E4%B8%AA%E5%85%B3%E4%BA%8E%E5%AE%9A%E6%97%B6%E5%99%A8%E7%9A%84%E5%B1%9E%E6%80%A7/" />
@@ -35,27 +37,33 @@
 
 
 
-<link href="/sass/main.min.2e81bbed97b8b282c1aeb57488cc71c8d8c8ec559f3931531bd396bf31e0d4dd.css" rel="stylesheet">
+<link href="/sass/main.min.af7fd1da18d66c2b017df5b4cae508ef44cfcac3fb4c7c7a327fe4f4f9e28b08.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
 
 
-<meta property="og:title" content="[译]牢记4个关于定时器的属性" />
-<meta property="og:description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind 这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="http://localhost:1313/post/%E8%AF%91%E7%89%A2%E8%AE%B04%E4%B8%AA%E5%85%B3%E4%BA%8E%E5%AE%9A%E6%97%B6%E5%99%A8%E7%9A%84%E5%B1%9E%E6%80%A7/" />
-<meta property="article:published_time" content="2022-05-20T12:19:35+08:00" />
-<meta property="article:modified_time" content="2022-05-20T12:19:35+08:00" />
-<meta itemprop="name" content="[译]牢记4个关于定时器的属性">
-<meta itemprop="description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind 这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction">
-<meta itemprop="datePublished" content="2022-05-20T12:19:35&#43;08:00" />
-<meta itemprop="dateModified" content="2022-05-20T12:19:35&#43;08:00" />
-<meta itemprop="wordCount" content="1289">
+<meta property="og:url" content="http://localhost:1313/post/%E8%AF%91%E7%89%A2%E8%AE%B04%E4%B8%AA%E5%85%B3%E4%BA%8E%E5%AE%9A%E6%97%B6%E5%99%A8%E7%9A%84%E5%B1%9E%E6%80%A7/">
+  <meta property="og:site_name" content="技术札记">
+  <meta property="og:title" content="[译]牢记4个关于定时器的属性">
+  <meta property="og:description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind
+这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction算子中可以访问流处理应用中基础的构建块：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2022-05-20T12:19:35+08:00">
+    <meta property="article:modified_time" content="2022-05-20T12:19:35+08:00">
+    <meta property="article:tag" content="Flink">
 
-
-
-<meta itemprop="keywords" content="flink," /><meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="[译]牢记4个关于定时器的属性"/>
-<meta name="twitter:description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind 这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction"/>
+  <meta itemprop="name" content="[译]牢记4个关于定时器的属性">
+  <meta itemprop="description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind
+这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction算子中可以访问流处理应用中基础的构建块：">
+  <meta itemprop="datePublished" content="2022-05-20T12:19:35+08:00">
+  <meta itemprop="dateModified" content="2022-05-20T12:19:35+08:00">
+  <meta itemprop="wordCount" content="1274">
+  <meta itemprop="keywords" content="flink">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="[译]牢记4个关于定时器的属性">
+  <meta name="twitter:description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind
+这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction算子中可以访问流处理应用中基础的构建块：">
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -81,13 +89,13 @@
 <nav id="mobile-menu" class="mobile-menu slideout-menu">
   <ul class="mobile-menu-list">
     <a href="/">
-        <li class="mobile-menu-item">Home</li>
-      </a><a href="/post/">
-        <li class="mobile-menu-item">Archives</li>
+        <li class="mobile-menu-item">首页</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">文章</li>
       </a><a href="/tags/">
-        <li class="mobile-menu-item">Tags</li>
+        <li class="mobile-menu-item">标签</li>
       </a><a href="/categories/">
-        <li class="mobile-menu-item">Categories</li>
+        <li class="mobile-menu-item">分类</li>
       </a>
   </ul>
 
@@ -109,13 +117,13 @@
 <nav class="site-navbar">
   <ul id="menu" class="menu">
     <li class="menu-item">
-        <a class="menu-item-link" href="/">Home</a>
+        <a class="menu-item-link" href="/">首页</a>
       </li><li class="menu-item">
-        <a class="menu-item-link" href="/post/">Archives</a>
+        <a class="menu-item-link" href="/posts/">文章</a>
       </li><li class="menu-item">
-        <a class="menu-item-link" href="/tags/">Tags</a>
+        <a class="menu-item-link" href="/tags/">标签</a>
       </li><li class="menu-item">
-        <a class="menu-item-link" href="/categories/">Categories</a>
+        <a class="menu-item-link" href="/categories/">分类</a>
       </li>
   </ul>
 </nav>
@@ -186,29 +194,28 @@
 <p>Flink会把定时器制作成managed state进行Checkpointing。当作业从checkpoint和savepoint恢复时，在恢复前该被触发的定时器会立即触发。</p>
 <h2 id="4-定时器可以被删除">4. 定时器可以被删除</h2>
 <p>从Flink 1.6开始，定时器可以被<a href="https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/operators/process_function.html#timer-coalescing">暂停和删除</a>。当Flink版本早于1.5时，可能会遇到Checkpointing性能不佳的问题，因为有许多无法删除和暂停的定时器。</p>
-<div align=center><img src="/牢记4个关于定时器的属性/4_characterisrics_of_timer.png" width=45%></div>
-<center>Apache Flink中4个定时器的属性</center>
+<p><img src="/%E7%89%A2%E8%AE%B04%E4%B8%AA%E5%85%B3%E4%BA%8E%E5%AE%9A%E6%97%B6%E5%99%A8%E7%9A%84%E5%B1%9E%E6%80%A7/4_characterisrics_of_timer.png" alt="Apache Flink中4个定时器的属性"></p>
 <p>你可以通过以下方式停止处理时间的定时器：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-java" data-lang="java"><span class="kt">long</span> <span class="n">timestampOfTimerToStop</span> <span class="o">=</span> <span class="o">...;</span>
-<span class="n">ctx</span><span class="o">.</span><span class="na">timerService</span><span class="o">().</span><span class="na">deleteProcessingTimeTimer</span><span class="o">(</span><span class="n">timestampOfTimerToStop</span><span class="o">);</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kt">long</span><span class="w"> </span><span class="n">timestampOfTimerToStop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">ctx</span><span class="p">.</span><span class="na">timerService</span><span class="p">().</span><span class="na">deleteProcessingTimeTimer</span><span class="p">(</span><span class="n">timestampOfTimerToStop</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
 </div>
 </div><p>你也可以通过以下方式停止事件时间的定时器：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-java" data-lang="java"><span class="kt">long</span> <span class="n">timestampOfTimerToStop</span> <span class="o">=</span> <span class="o">...;</span>
-<span class="n">ctx</span><span class="o">.</span><span class="na">timerService</span><span class="o">().</span><span class="na">deleteEventTimeTimer</span><span class="o">(</span><span class="n">timestampOfTimerToStop</span><span class="o">);</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kt">long</span><span class="w"> </span><span class="n">timestampOfTimerToStop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">ctx</span><span class="p">.</span><span class="na">timerService</span><span class="p">().</span><span class="na">deleteEventTimeTimer</span><span class="p">(</span><span class="n">timestampOfTimerToStop</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
 </div>
 </div><p>注意，如果指定时间戳上没有注册定时器，那么停止定时器无效。</p>
 
@@ -253,26 +260,18 @@
   
 
   
-    <script src="https://utteranc.es/client.js"
-            repo="littleeleventhwolf/littleeleventhwolf.github.io"
-            issue-term="pathname"
-            theme="github-light"
-            crossorigin="anonymous"
-            async>
-    </script>
-    <noscript>Please enable JavaScript to view the <a href="https://github.com/utterance">comments powered by utterances.</a></noscript>
 
       </div>
     </main>
 
     <footer id="footer" class="footer">
       <div class="social-links">
-      <a href="2367785195@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="mailto:2367785195@qq.com" class="iconfont icon-email" title="email"></a>
       <a href="https://github.com/littleeleventhwolf" class="iconfont icon-github" title="github"></a>
       <a href="https://weibo.com/u/2430523233" class="iconfont icon-weibo" title="weibo"></a>
       <a href="https://www.zhihu.com/people/xiao-shi-yilang-19-67" class="iconfont icon-zhihu" title="zhihu"></a>
       <a href="https://space.bilibili.com/49799259" class="iconfont icon-bilibili" title="bilibili"></a>
-  <a href="http://localhost:1313/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+  
 </div>
 
 <div class="copyright">
@@ -290,7 +289,7 @@
   <span class="copyright-year">
     &copy; 
     2017 - 
-    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>小十一狼</span>
+    2026<span class="heart"><i class="iconfont icon-heart"></i></span><span></span>
   </span>
 </div>
 
@@ -307,7 +306,7 @@
 
 
 
-<script type="text/javascript" src="/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js"></script>
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 

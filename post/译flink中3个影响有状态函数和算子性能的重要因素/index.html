@@ -16,14 +16,17 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="小十一狼" /><meta name="description" content="原文：3 important performance factors for stateful functions and operators in Flink 这篇博客关注在状态流应用中，当使用Flink的Keyed State时，3个影响有状态函数或算子访问性能的因素。 Keyed" /><meta name="keywords" content="flink" />
+<meta name="author" content="小十一狼" /><meta name="description" content="原文：3 important performance factors for stateful functions and operators in Flink
+这篇博客关注在状态流应用中，当使用Flink的Keyed State时，3个影响有状态函数或算子访问性能的因素。
+Keyed State是Flink两类状态之一，另一类是Operator State。见名知意，Keyed State绑定到了key上，并且只当在函数和算子中处理KeyedStream时可访问。Operator State和Keyed State的区别在于，Operator State作用于算子并行的每一个实例上（sub-task），而Keyed State是按key进行状态分区的。
+" /><meta name="keywords" content="flink" />
 
 
 
 
 
 
-<meta name="generator" content="Hugo 0.67.1 with theme even" />
+<meta name="generator" content="Hugo 0.155.3 with theme even" />
 
 
 <link rel="canonical" href="http://localhost:1313/post/%E8%AF%91flink%E4%B8%AD3%E4%B8%AA%E5%BD%B1%E5%93%8D%E6%9C%89%E7%8A%B6%E6%80%81%E5%87%BD%E6%95%B0%E5%92%8C%E7%AE%97%E5%AD%90%E6%80%A7%E8%83%BD%E7%9A%84%E9%87%8D%E8%A6%81%E5%9B%A0%E7%B4%A0/" />
@@ -35,27 +38,36 @@
 
 
 
-<link href="/sass/main.min.2e81bbed97b8b282c1aeb57488cc71c8d8c8ec559f3931531bd396bf31e0d4dd.css" rel="stylesheet">
+<link href="/sass/main.min.af7fd1da18d66c2b017df5b4cae508ef44cfcac3fb4c7c7a327fe4f4f9e28b08.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
 
 
-<meta property="og:title" content="[译]Flink中3个影响有状态函数和算子性能的重要因素" />
-<meta property="og:description" content="原文：3 important performance factors for stateful functions and operators in Flink 这篇博客关注在状态流应用中，当使用Flink的Keyed State时，3个影响有状态函数或算子访问性能的因素。 Keyed" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="http://localhost:1313/post/%E8%AF%91flink%E4%B8%AD3%E4%B8%AA%E5%BD%B1%E5%93%8D%E6%9C%89%E7%8A%B6%E6%80%81%E5%87%BD%E6%95%B0%E5%92%8C%E7%AE%97%E5%AD%90%E6%80%A7%E8%83%BD%E7%9A%84%E9%87%8D%E8%A6%81%E5%9B%A0%E7%B4%A0/" />
-<meta property="article:published_time" content="2022-05-21T17:28:50+08:00" />
-<meta property="article:modified_time" content="2022-05-21T17:28:50+08:00" />
-<meta itemprop="name" content="[译]Flink中3个影响有状态函数和算子性能的重要因素">
-<meta itemprop="description" content="原文：3 important performance factors for stateful functions and operators in Flink 这篇博客关注在状态流应用中，当使用Flink的Keyed State时，3个影响有状态函数或算子访问性能的因素。 Keyed">
-<meta itemprop="datePublished" content="2022-05-21T17:28:50&#43;08:00" />
-<meta itemprop="dateModified" content="2022-05-21T17:28:50&#43;08:00" />
-<meta itemprop="wordCount" content="1258">
+<meta property="og:url" content="http://localhost:1313/post/%E8%AF%91flink%E4%B8%AD3%E4%B8%AA%E5%BD%B1%E5%93%8D%E6%9C%89%E7%8A%B6%E6%80%81%E5%87%BD%E6%95%B0%E5%92%8C%E7%AE%97%E5%AD%90%E6%80%A7%E8%83%BD%E7%9A%84%E9%87%8D%E8%A6%81%E5%9B%A0%E7%B4%A0/">
+  <meta property="og:site_name" content="技术札记">
+  <meta property="og:title" content="[译]Flink中3个影响有状态函数和算子性能的重要因素">
+  <meta property="og:description" content="原文：3 important performance factors for stateful functions and operators in Flink
+这篇博客关注在状态流应用中，当使用Flink的Keyed State时，3个影响有状态函数或算子访问性能的因素。
+Keyed State是Flink两类状态之一，另一类是Operator State。见名知意，Keyed State绑定到了key上，并且只当在函数和算子中处理KeyedStream时可访问。Operator State和Keyed State的区别在于，Operator State作用于算子并行的每一个实例上（sub-task），而Keyed State是按key进行状态分区的。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2022-05-21T17:28:50+08:00">
+    <meta property="article:modified_time" content="2022-05-21T17:28:50+08:00">
+    <meta property="article:tag" content="Flink">
 
-
-
-<meta itemprop="keywords" content="flink," /><meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="[译]Flink中3个影响有状态函数和算子性能的重要因素"/>
-<meta name="twitter:description" content="原文：3 important performance factors for stateful functions and operators in Flink 这篇博客关注在状态流应用中，当使用Flink的Keyed State时，3个影响有状态函数或算子访问性能的因素。 Keyed"/>
+  <meta itemprop="name" content="[译]Flink中3个影响有状态函数和算子性能的重要因素">
+  <meta itemprop="description" content="原文：3 important performance factors for stateful functions and operators in Flink
+这篇博客关注在状态流应用中，当使用Flink的Keyed State时，3个影响有状态函数或算子访问性能的因素。
+Keyed State是Flink两类状态之一，另一类是Operator State。见名知意，Keyed State绑定到了key上，并且只当在函数和算子中处理KeyedStream时可访问。Operator State和Keyed State的区别在于，Operator State作用于算子并行的每一个实例上（sub-task），而Keyed State是按key进行状态分区的。">
+  <meta itemprop="datePublished" content="2022-05-21T17:28:50+08:00">
+  <meta itemprop="dateModified" content="2022-05-21T17:28:50+08:00">
+  <meta itemprop="wordCount" content="1268">
+  <meta itemprop="keywords" content="flink">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="[译]Flink中3个影响有状态函数和算子性能的重要因素">
+  <meta name="twitter:description" content="原文：3 important performance factors for stateful functions and operators in Flink
+这篇博客关注在状态流应用中，当使用Flink的Keyed State时，3个影响有状态函数或算子访问性能的因素。
+Keyed State是Flink两类状态之一，另一类是Operator State。见名知意，Keyed State绑定到了key上，并且只当在函数和算子中处理KeyedStream时可访问。Operator State和Keyed State的区别在于，Operator State作用于算子并行的每一个实例上（sub-task），而Keyed State是按key进行状态分区的。">
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -81,13 +93,13 @@
 <nav id="mobile-menu" class="mobile-menu slideout-menu">
   <ul class="mobile-menu-list">
     <a href="/">
-        <li class="mobile-menu-item">Home</li>
-      </a><a href="/post/">
-        <li class="mobile-menu-item">Archives</li>
+        <li class="mobile-menu-item">首页</li>
+      </a><a href="/posts/">
+        <li class="mobile-menu-item">文章</li>
       </a><a href="/tags/">
-        <li class="mobile-menu-item">Tags</li>
+        <li class="mobile-menu-item">标签</li>
       </a><a href="/categories/">
-        <li class="mobile-menu-item">Categories</li>
+        <li class="mobile-menu-item">分类</li>
       </a>
   </ul>
 
@@ -109,13 +121,13 @@
 <nav class="site-navbar">
   <ul id="menu" class="menu">
     <li class="menu-item">
-        <a class="menu-item-link" href="/">Home</a>
+        <a class="menu-item-link" href="/">首页</a>
       </li><li class="menu-item">
-        <a class="menu-item-link" href="/post/">Archives</a>
+        <a class="menu-item-link" href="/posts/">文章</a>
       </li><li class="menu-item">
-        <a class="menu-item-link" href="/tags/">Tags</a>
+        <a class="menu-item-link" href="/tags/">标签</a>
       </li><li class="menu-item">
-        <a class="menu-item-link" href="/categories/">Categories</a>
+        <a class="menu-item-link" href="/categories/">分类</a>
       </li>
   </ul>
 </nav>
@@ -164,7 +176,7 @@
       <p>原文：<a href="https://www.ververica.com/blog/performance-factors-stateful-functions-operators-flink">3 important performance factors for stateful functions and operators in Flink</a></p>
 <p>这篇博客关注在状态流应用中，当使用Flink的Keyed State时，3个影响有状态函数或算子访问性能的因素。</p>
 <p>Keyed State是Flink两类状态之一，另一类是Operator State。见名知意，Keyed State绑定到了key上，并且只当在函数和算子中处理<code>KeyedStream</code>时可访问。Operator State和Keyed State的区别在于，Operator State作用于算子并行的每一个实例上（sub-task），而Keyed State是按key进行状态分区的。</p>
-<p>想了解更多关于State的信息请前往“<a href="https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/state/state.html">Working with State</a>”，其中描述了如何使用State开发流应用。</p>
+<p>想了解更多关于State的信息请前往&quot;<a href="https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/state/state.html">Working with State</a>&quot;，其中描述了如何使用State开发流应用。</p>
 <h1 id="3个影响keyed-state访问性能的因素">3个影响Keyed State访问性能的因素</h1>
 <p>下面逐一讨论这3个影响Keyed State访问性能的因素：</p>
 <h2 id="所选的state-backend">所选的State Backend</h2>
@@ -222,26 +234,18 @@
   
 
   
-    <script src="https://utteranc.es/client.js"
-            repo="littleeleventhwolf/littleeleventhwolf.github.io"
-            issue-term="pathname"
-            theme="github-light"
-            crossorigin="anonymous"
-            async>
-    </script>
-    <noscript>Please enable JavaScript to view the <a href="https://github.com/utterance">comments powered by utterances.</a></noscript>
 
       </div>
     </main>
 
     <footer id="footer" class="footer">
       <div class="social-links">
-      <a href="2367785195@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="mailto:2367785195@qq.com" class="iconfont icon-email" title="email"></a>
       <a href="https://github.com/littleeleventhwolf" class="iconfont icon-github" title="github"></a>
       <a href="https://weibo.com/u/2430523233" class="iconfont icon-weibo" title="weibo"></a>
       <a href="https://www.zhihu.com/people/xiao-shi-yilang-19-67" class="iconfont icon-zhihu" title="zhihu"></a>
       <a href="https://space.bilibili.com/49799259" class="iconfont icon-bilibili" title="bilibili"></a>
-  <a href="http://localhost:1313/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+  
 </div>
 
 <div class="copyright">
@@ -259,7 +263,7 @@
   <span class="copyright-year">
     &copy; 
     2017 - 
-    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>小十一狼</span>
+    2026<span class="heart"><i class="iconfont icon-heart"></i></span><span></span>
   </span>
 </div>
 
@@ -276,7 +280,7 @@
 
 
 
-<script type="text/javascript" src="/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js"></script>
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
 
 
 
