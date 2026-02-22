@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>基于Claude的LifeSystem - 技术札记</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="小十一狼" /><meta name="description" content="最近在微博上看到爱可可-爱生活老师分享的一个基于纯文本和 Claude Code 的个人生命操作系统，日常协助个人做记录、做规划、提供反思、理清思路、培养习惯的一款自我提升项目，于是想自己也尝试一下，这里将初次尝试的步骤记录下来。
+" /><meta name="keywords" content="claude" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.155.3 with theme even" />
+
+
+<link rel="canonical" href="http://localhost:1313/post/%E5%9F%BA%E4%BA%8Eclaude%E7%9A%84lifesystem/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+<link href="/sass/main.min.af7fd1da18d66c2b017df5b4cae508ef44cfcac3fb4c7c7a327fe4f4f9e28b08.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
+
+
+<meta property="og:url" content="http://localhost:1313/post/%E5%9F%BA%E4%BA%8Eclaude%E7%9A%84lifesystem/">
+  <meta property="og:site_name" content="技术札记">
+  <meta property="og:title" content="基于Claude的LifeSystem">
+  <meta property="og:description" content="最近在微博上看到爱可可-爱生活老师分享的一个基于纯文本和 Claude Code 的个人生命操作系统，日常协助个人做记录、做规划、提供反思、理清思路、培养习惯的一款自我提升项目，于是想自己也尝试一下，这里将初次尝试的步骤记录下来。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2026-02-22T21:21:07+08:00">
+    <meta property="article:modified_time" content="2026-02-22T21:21:07+08:00">
+    <meta property="article:tag" content="Claude">
+
+  <meta itemprop="name" content="基于Claude的LifeSystem">
+  <meta itemprop="description" content="最近在微博上看到爱可可-爱生活老师分享的一个基于纯文本和 Claude Code 的个人生命操作系统，日常协助个人做记录、做规划、提供反思、理清思路、培养习惯的一款自我提升项目，于是想自己也尝试一下，这里将初次尝试的步骤记录下来。">
+  <meta itemprop="datePublished" content="2026-02-22T21:21:07+08:00">
+  <meta itemprop="dateModified" content="2026-02-22T21:21:07+08:00">
+  <meta itemprop="wordCount" content="1491">
+  <meta itemprop="keywords" content="claude">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="基于Claude的LifeSystem">
+  <meta name="twitter:description" content="最近在微博上看到爱可可-爱生活老师分享的一个基于纯文本和 Claude Code 的个人生命操作系统，日常协助个人做记录、做规划、提供反思、理清思路、培养习惯的一款自我提升项目，于是想自己也尝试一下，这里将初次尝试的步骤记录下来。">
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">技术札记</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">首页</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">文章</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">标签</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">分类</li>
+      </a>
+  </ul>
+
+  
+
+
+</nav>
+
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">技术札记</a>
+</div>
+
+
+
+
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">首页</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">文章</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">标签</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">分类</a>
+      </li>
+  </ul>
+</nav>
+
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">基于Claude的LifeSystem</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2026-02-22 </span>
+        <div class="post-category">
+            <a href="/categories/claude/"> claude </a>
+            </div>
+        
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#配置-claude">配置 Claude</a></li>
+    <li><a href="#开启-life-system">“开启” Life System</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+    <div class="post-content">
+      <p>最近在微博上看到爱可可-爱生活老师分享的一个<a href="https://weibo.com/1402400261/5267766594766455?wm=3333_2001&amp;from=10G2193010&amp;sourcetype=weixin&amp;rp_trans=dFZVU0RJSXZ0STdVaTI1REdtSVF3MzRoVGVtMzI4VXdVK0VteWpnMWhpbE51Um1Vc1pYTkZ4dElqSXZvM05oQ0RBOG1TcFkwYW93aWFrQ2hIVnRMTmJVMnFpSFlESDBPbFFhRjNwdzUxek4xU1BFNU91ci9ZamwwZlpZR0pEcjRDUFFDZFUxQW5SK2pNaERzbFZyc2xnPT0%3D&amp;s_trans=Li1PdIkgUXm%2Bm6xZ3lyd8g%3D%3D_5267766594766455_s&amp;s_channel=4">基于纯文本和 Claude Code 的个人生命操作系统</a>，日常协助个人做记录、做规划、提供反思、理清思路、培养习惯的一款自我提升项目，于是想自己也尝试一下，这里将初次尝试的步骤记录下来。</p>
+<h1 id="配置-claude">配置 Claude</h1>
+<p>安装 Claude Code：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">npm install -g @anthropic-ai/claude-code
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>由于中国被限制访问，所以我们切换一下模型为 GLM，参考 <a href="https://mp.weixin.qq.com/s/YuzQtQ_CvLsgNZ8vE2qrzw">用 Claude Code 跑 GLM-5：安装 + 配置 + 上手</a>，以下是我的 ~/.claude/settings.json 配置：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;env&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;ANTHROPIC_BASE_URL&#34;</span><span class="p">:</span> <span class="s2">&#34;https://open.bigmodel.cn/api/anthropic&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;ANTHROPIC_DEFAULT_HAIKU_MODEL&#34;</span><span class="p">:</span> <span class="s2">&#34;glm-4.6V-Flash&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;ANTHROPIC_DEFAULT_SONNET_MODEL&#34;</span><span class="p">:</span> <span class="s2">&#34;glm-4.7-Flash&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;ANTHROPIC_DEFAULT_OPUS_MODEL&#34;</span><span class="p">:</span> <span class="s2">&#34;glm-5&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">},</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;permissions&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;allow&#34;</span><span class="p">:</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在 <a href="https://bigmodel.cn/usercenter/proj-mgmt/apikeys">智普 BigModel</a> 上注册账号后创建新的 API Key，并设置 ANTHROPIC_AUTH_TOKEN：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">ANTHROPIC_AUTH_TOKEN</span><span class="o">=</span><span class="s2">&#34;替换为你的 API Key&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>测试成功后，可写入 ~/.zshrc 或 ~/.bashrc，执行 source 生效。</p>
+<h1 id="开启-life-system">“开启” Life System</h1>
+<p>其实 <a href="https://github.com/davidhariri/life-system">life-system</a> 仓库中的 README.md 步骤已经很明确了，照做还是很容易的。我这里也按步骤再叙述一下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1"># 克隆项目</span>
+</span></span><span class="line"><span class="cl">git clone git@github.com:davidhariri/life-system.git
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 本地新建自己名字命名的路径</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 切记替换这里的小写 yourname 和后文出现小写 yourname 的地方，为你自己的命名</span>
+</span></span><span class="line"><span class="cl">mkdir -p ~/Documents/yourname/
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 替换 life-system 仓库下 CLAUDE.md 中 YOURNAME 占位的路径为上面新建的自己名字的命名</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 然后拷贝至 ~/.claude/CLAUDE.md，全局配置，适用于机器上所有项目，适合设置通用规则和常用工具链</span>
+</span></span><span class="line"><span class="cl">cp CLAUDE.md ~/.claude/CLAUDE.md
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># skills/morning 目录下的 SKILL.md 和 reference.md 也进行 YOURNAME 的占位替换</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 然后拷贝至 ~/.claude/skills/ 目录下</span>
+</span></span><span class="line"><span class="cl">mkdir -p ~/.claude/skills
+</span></span><span class="line"><span class="cl">cp -R skills/morning ~/.claude/skills/morning
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 安装 journal.sh 脚本</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 脚本中的 JOURNAL_DIR 和 TEMPLATE 中的 YOURNAME 占位也进行替换</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 脚本中的 EDITOR_CMD 我修改成了 vim</span>
+</span></span><span class="line"><span class="cl">mkdir -p ~/.scripts
+</span></span><span class="line"><span class="cl">cp scripts/journal.sh ~/.scripts/journal.sh
+</span></span><span class="line"><span class="cl">chmod +x ~/.scripts/journal.sh
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 添加 journal.sh 的别名 jrn</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;alias jrn=&#39;~/.scripts/journal.sh&#39;&#34;</span> &gt;&gt; ~/.zshrc
+</span></span><span class="line"><span class="cl"><span class="nb">source</span> ~/.zshrc
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 拷贝 plan.md、inbox.md journal/、reference/、people/、research/、templates/ 这些文件和目录到 ~/Documents/yourname 目录路径下</span>
+</span></span><span class="line"><span class="cl">cp plan.md ~/Documents/yourname
+</span></span><span class="line"><span class="cl">cp -R journal/ ~/Documents/yourname/journal
+</span></span><span class="line"><span class="cl">cp -R reference/ ~/Documents/yourname/reference
+</span></span><span class="line"><span class="cl">cp -R people/ ~/Documents/yourname/people
+</span></span><span class="line"><span class="cl">cp -R research/ ~/Documents/yourname/research
+</span></span><span class="line"><span class="cl">cp -R templates/ ~/Documents/yourname/templates
+</span></span><span class="line"><span class="cl">cp inbox.md ~/Documents/yourname
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>进入 ~/Documents/yourname 目录，执行 claude 命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="nb">cd</span> ~/Documents/yourname
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">claude
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>输入 morning 开启 life system：</p>
+<p><img src="/%E5%9F%BA%E4%BA%8EClaude%E7%9A%84LifeSystem/first-time-to-use-lifesystem.png" alt="first-time-to-use-lifesystem"></p>
+<p>接着持续沟通，最终生成了一个学习路径：</p>
+<p><img src="/%E5%9F%BA%E4%BA%8EClaude%E7%9A%84LifeSystem/roadmap-to-learn.png" alt="roadmap-to-learn"></p>
+<p>展示一下这个 roadmap 的内容：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-markdown" data-lang="markdown"><span class="line"><span class="cl"><span class="gh"># Learning Roadmap: Kubernetes, Claude, and LLMs
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gs">**Created:**</span> 2026-02-22
+</span></span><span class="line"><span class="cl"><span class="gs">**Purpose:**</span> Structured path to learn three critical technologies
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">---
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">## Phase 1: Foundations (Weeks 1-2)
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### Kubernetes
+</span></span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Core concepts: pods, services, deployments, controllers
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> kubectl commands and workflow
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Local environment: minikube or kind
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Resources: k8s.io docs, &#34;Kubernetes in Action&#34;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### Claude API
+</span></span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Anthropic API basics
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Prompt engineering fundamentals
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Python SDK (anthropic)
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Resources: Anthropic docs, Prompt library
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### LLM Fundamentals
+</span></span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> What is a language model?
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Tokenization, context window
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Types: autoregressive, seq2seq, transformers
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Resources: Andrej Karpathy&#39;s YouTube, &#34;Attention Is All You Need&#34; paper
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">---
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">## Phase 2: Practical Integration (Weeks 3-4)
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### Kubernetes
+</span></span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Deploy a simple app to k8s
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> ConfigMaps and Secrets
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Services and Ingress
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Basic health checks (liveness/readiness probes)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### Claude
+</span></span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Build a basic chatbot CLI
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Temperature, top_p, max_tokens tuning
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> System prompts
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Function calling
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### LLM Applications
+</span></span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> RAG: Retrieval-Augmented Generation
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Simple prompt templates
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Processing structured vs unstructured text
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">---
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">## Phase 3: Advanced Kubernetes (Weeks 5-6)
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> StatefulSets and DaemonSets
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> ConfigMap/Secret best practices
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Horizontal Pod Autoscaling
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Custom Resources (CRDs)
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> CI/CD with ArgoCD or Flux
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">---
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">## Phase 4: LLM Architecture &amp; Claude Advanced (Weeks 7-8)
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### LLMs
+</span></span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Transformer architecture
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Attention mechanisms
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Fine-tuning basics (LoRA, PEFT)
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Evaluation metrics
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### Claude
+</span></span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Prompt caching (performance optimization)
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Batches API for bulk processing
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Tool use and function calling
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Claude for coding (Claude Code)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">---
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">## Phase 5: Integration Projects (Weeks 9-10)
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Build something that combines all three:
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gs">**Project Idea:**</span> Deploy an LLM-powered application on Kubernetes
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Build a simple LLM service (FastAPI + Claude API)
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Containerize with Docker
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Deploy to Kubernetes cluster
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Add ingress, autoscaling, and monitoring
+</span></span><span class="line"><span class="cl"><span class="k">- [ ]</span> Add functionality: chat interface, document processing
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">---
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">## Success Criteria
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">By end of Week 10, you should be able to:
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Deploy and manage applications on Kubernetes
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Build and deploy LLM-powered services
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Understand when to use Claude vs other models
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Have at least one integrated project
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">---
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">## Recommended Resources
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### Kubernetes
+</span></span></span><span class="line"><span class="cl"><span class="k">-</span> Official docs: https://kubernetes.io/docs
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Learning: k8straining.io
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Hands-on: k8s.io/tutorials
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### Claude
+</span></span></span><span class="line"><span class="cl"><span class="k">-</span> Anthropic docs: https://docs.anthropic.com
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Prompt library: https://docs.anthropic.com/claude/prompt-library
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">### LLMs
+</span></span></span><span class="line"><span class="cl"><span class="k">-</span> Karpathy&#39;s channel: https://youtube.com/neo414
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Fast.ai: https://course.fast.ai
+</span></span><span class="line"><span class="cl"><span class="k">-</span> LlamaIndex docs: https://docs.llamaindex.ai
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">---
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">## Prerequisites
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Basic Python knowledge
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Command line familiarity
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Understanding of APIs
+</span></span><span class="line"><span class="cl"><span class="k">-</span> Git familiarity
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">---
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="gu">## Notes
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Add notes and questions as you progress. What tripped you up? What connected?
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>初步使用就到这里，目前还只是了解皮毛，后续按照这个 life system 的用法管理自己的目标，等得到一定体会和感悟时，再来和大家聊聊技巧和感受。</p>
+
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">小十一狼</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">
+        2026-02-22
+        
+    </span>
+  </p>
+  
+  
+</div>
+<footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/claude/">claude</a>
+          </div>
+      <nav class="post-nav">
+        
+        <a class="next" href="/post/%E5%85%B3%E4%BA%8E%E4%BC%98%E5%8C%96flink%E7%8A%B6%E6%80%81%E6%81%A2%E5%A4%8D%E5%92%8C%E5%88%B6%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B7%A5%E4%BD%9C/">
+            <span class="next-text nav-default">关于优化Flink状态恢复和制作的一些工作</span>
+            <span class="next-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+
+  
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:2367785195@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://github.com/littleeleventhwolf" class="iconfont icon-github" title="github"></a>
+      <a href="https://weibo.com/u/2430523233" class="iconfont icon-weibo" title="weibo"></a>
+      <a href="https://www.zhihu.com/people/xiao-shi-yilang-19-67" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://space.bilibili.com/49799259" class="iconfont icon-bilibili" title="bilibili"></a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    由 <a class="hexo-link" href="https://gohugo.io">Hugo</a> 强力驱动
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    主题 - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    2017 - 
+    2026<span class="heart"><i class="iconfont icon-heart"></i></span><span></span>
+  </span>
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js" integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin="anonymous"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

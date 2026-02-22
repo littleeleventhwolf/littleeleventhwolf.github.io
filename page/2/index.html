@@ -50,8 +50,8 @@
 
   <meta itemprop="name" content="技术札记">
   <meta itemprop="description" content="小十一狼的技术博客">
-  <meta itemprop="datePublished" content="2026-02-20T13:45:55+08:00">
-  <meta itemprop="dateModified" content="2026-02-20T13:45:55+08:00">
+  <meta itemprop="datePublished" content="2026-02-22T21:21:07+08:00">
+  <meta itemprop="dateModified" content="2026-02-22T21:21:07+08:00">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="技术札记">
   <meta name="twitter:description" content="小十一狼的技术博客">
@@ -125,6 +125,29 @@
       <div class="content-wrapper">
         <div id="content" class="content">
           <section id="posts" class="posts">
+    <article class="post">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/post/%E8%AF%91flink%E4%B8%AD3%E4%B8%AA%E5%BD%B1%E5%93%8D%E6%9C%89%E7%8A%B6%E6%80%81%E5%87%BD%E6%95%B0%E5%92%8C%E7%AE%97%E5%AD%90%E6%80%A7%E8%83%BD%E7%9A%84%E9%87%8D%E8%A6%81%E5%9B%A0%E7%B4%A0/">[译]Flink中3个影响有状态函数和算子性能的重要因素</a></h1>
+    <div class="post-meta">
+      <span class="post-time"> 2022-05-21 </span>
+      <div class="post-category">
+          <a href="/categories/flink/"> flink </a>
+          </div>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    <div class="post-summary">
+      <p>原文：<a href="https://www.ververica.com/blog/performance-factors-stateful-functions-operators-flink">3 important performance factors for stateful functions and operators in Flink</a></p>
+<p>这篇博客关注在状态流应用中，当使用Flink的Keyed State时，3个影响有状态函数或算子访问性能的因素。</p>
+<p>Keyed State是Flink两类状态之一，另一类是Operator State。见名知意，Keyed State绑定到了key上，并且只当在函数和算子中处理<code>KeyedStream</code>时可访问。Operator State和Keyed State的区别在于，Operator State作用于算子并行的每一个实例上（sub-task），而Keyed State是按key进行状态分区的。</p>
+    </div>
+    <div class="read-more">
+      <a href="/post/%E8%AF%91flink%E4%B8%AD3%E4%B8%AA%E5%BD%B1%E5%93%8D%E6%9C%89%E7%8A%B6%E6%80%81%E5%87%BD%E6%95%B0%E5%92%8C%E7%AE%97%E5%AD%90%E6%80%A7%E8%83%BD%E7%9A%84%E9%87%8D%E8%A6%81%E5%9B%A0%E7%B4%A0/" class="read-more-link">阅读更多</a>
+    </div>
+  </div>
+</article>
+
     <article class="post">
   <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/post/%E8%AF%91%E7%89%A2%E8%AE%B04%E4%B8%AA%E5%85%B3%E4%BA%8E%E5%AE%9A%E6%97%B6%E5%99%A8%E7%9A%84%E5%B1%9E%E6%80%A7/">[译]牢记4个关于定时器的属性</a></h1>
