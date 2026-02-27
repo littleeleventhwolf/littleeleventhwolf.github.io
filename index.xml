@@ -6,8 +6,15 @@
     <description>Recent content on 技术札记</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 22 Feb 2026 21:21:07 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 27 Feb 2026 09:43:31 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>零样本学习和少样本学习的能力来自哪里?</title>
+      <link>http://localhost:1313/post/%E9%9B%B6%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0%E5%92%8C%E5%B0%91%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0%E7%9A%84%E8%83%BD%E5%8A%9B%E6%9D%A5%E8%87%AA%E5%93%AA%E9%87%8C/</link>
+      <pubDate>Fri, 27 Feb 2026 09:43:31 +0800</pubDate>
+      <guid>http://localhost:1313/post/%E9%9B%B6%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0%E5%92%8C%E5%B0%91%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0%E7%9A%84%E8%83%BD%E5%8A%9B%E6%9D%A5%E8%87%AA%E5%93%AA%E9%87%8C/</guid>
+      <description>&lt;h1 id=&#34;训练阶段&#34;&gt;训练阶段&lt;/h1&gt;&#xA;&lt;p&gt;直观上看，大模型的目标是“预测下一个词”，但在海量、高质量的数据上进行这种预测，实际上能“逼迫”模型学会：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;语言规律&lt;/strong&gt;：语法、搭配&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;世界知识&lt;/strong&gt;：事实性信息（比如“北京是中国的首都”）&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;任务逻辑&lt;/strong&gt;：数据中天然包含的“问题-答案”、“原文-摘要”、“英语-中文”的配对&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;关键点在于为了把下一个词预测得足够准（Loss 足够低），模型必须在它的参数中内化这些逻辑。&lt;/p&gt;</description>
+    </item>
     <item>
       <title>基于Claude的LifeSystem</title>
       <link>http://localhost:1313/post/%E5%9F%BA%E4%BA%8Eclaude%E7%9A%84lifesystem/</link>

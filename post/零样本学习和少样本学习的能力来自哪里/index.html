@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>零样本学习和少样本学习的能力来自哪里? - 技术札记</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="小十一狼" /><meta name="description" content="训练阶段 直观上看，大模型的目标是“预测下一个词”，但在海量、高质量的数据上进行这种预测，实际上能“逼迫”模型学会：
+语言规律：语法、搭配 世界知识：事实性信息（比如“北京是中国的首都”） 任务逻辑：数据中天然包含的“问题-答案”、“原文-摘要”、“英语-中文”的配对 关键点在于为了把下一个词预测得足够准（Loss 足够低），模型必须在它的参数中内化这些逻辑。
+" /><meta name="keywords" content="llm" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.155.3 with theme even" />
+
+
+<link rel="canonical" href="http://localhost:1313/post/%E9%9B%B6%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0%E5%92%8C%E5%B0%91%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0%E7%9A%84%E8%83%BD%E5%8A%9B%E6%9D%A5%E8%87%AA%E5%93%AA%E9%87%8C/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+<link href="/sass/main.min.af7fd1da18d66c2b017df5b4cae508ef44cfcac3fb4c7c7a327fe4f4f9e28b08.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
+
+
+<meta property="og:url" content="http://localhost:1313/post/%E9%9B%B6%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0%E5%92%8C%E5%B0%91%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0%E7%9A%84%E8%83%BD%E5%8A%9B%E6%9D%A5%E8%87%AA%E5%93%AA%E9%87%8C/">
+  <meta property="og:site_name" content="技术札记">
+  <meta property="og:title" content="零样本学习和少样本学习的能力来自哪里?">
+  <meta property="og:description" content="训练阶段 直观上看，大模型的目标是“预测下一个词”，但在海量、高质量的数据上进行这种预测，实际上能“逼迫”模型学会：
+语言规律：语法、搭配 世界知识：事实性信息（比如“北京是中国的首都”） 任务逻辑：数据中天然包含的“问题-答案”、“原文-摘要”、“英语-中文”的配对 关键点在于为了把下一个词预测得足够准（Loss 足够低），模型必须在它的参数中内化这些逻辑。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2026-02-27T09:43:31+08:00">
+    <meta property="article:modified_time" content="2026-02-27T09:43:31+08:00">
+    <meta property="article:tag" content="Llm">
+
+  <meta itemprop="name" content="零样本学习和少样本学习的能力来自哪里?">
+  <meta itemprop="description" content="训练阶段 直观上看，大模型的目标是“预测下一个词”，但在海量、高质量的数据上进行这种预测，实际上能“逼迫”模型学会：
+语言规律：语法、搭配 世界知识：事实性信息（比如“北京是中国的首都”） 任务逻辑：数据中天然包含的“问题-答案”、“原文-摘要”、“英语-中文”的配对 关键点在于为了把下一个词预测得足够准（Loss 足够低），模型必须在它的参数中内化这些逻辑。">
+  <meta itemprop="datePublished" content="2026-02-27T09:43:31+08:00">
+  <meta itemprop="dateModified" content="2026-02-27T09:43:31+08:00">
+  <meta itemprop="wordCount" content="892">
+  <meta itemprop="keywords" content="llm">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="零样本学习和少样本学习的能力来自哪里?">
+  <meta name="twitter:description" content="训练阶段 直观上看，大模型的目标是“预测下一个词”，但在海量、高质量的数据上进行这种预测，实际上能“逼迫”模型学会：
+语言规律：语法、搭配 世界知识：事实性信息（比如“北京是中国的首都”） 任务逻辑：数据中天然包含的“问题-答案”、“原文-摘要”、“英语-中文”的配对 关键点在于为了把下一个词预测得足够准（Loss 足够低），模型必须在它的参数中内化这些逻辑。">
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">技术札记</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">首页</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">文章</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">标签</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">分类</li>
+      </a>
+  </ul>
+
+  
+
+
+</nav>
+
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">技术札记</a>
+</div>
+
+
+
+
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">首页</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">文章</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">标签</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">分类</a>
+      </li>
+  </ul>
+</nav>
+
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">零样本学习和少样本学习的能力来自哪里?</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2026-02-27 </span>
+        <div class="post-category">
+            <a href="/categories/llm/"> llm </a>
+            </div>
+        
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#训练阶段">训练阶段</a></li>
+    <li><a href="#大规模参数带来的能力涌现">大规模参数带来的能力涌现</a></li>
+    <li><a href="#上下文学习">上下文学习</a></li>
+    <li><a href="#总结">总结</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+    <div class="post-content">
+      <h1 id="训练阶段">训练阶段</h1>
+<p>直观上看，大模型的目标是“预测下一个词”，但在海量、高质量的数据上进行这种预测，实际上能“逼迫”模型学会：</p>
+<ul>
+<li><strong>语言规律</strong>：语法、搭配</li>
+<li><strong>世界知识</strong>：事实性信息（比如“北京是中国的首都”）</li>
+<li><strong>任务逻辑</strong>：数据中天然包含的“问题-答案”、“原文-摘要”、“英语-中文”的配对</li>
+</ul>
+<p>关键点在于为了把下一个词预测得足够准（Loss 足够低），模型必须在它的参数中内化这些逻辑。</p>
+<h1 id="大规模参数带来的能力涌现">大规模参数带来的能力涌现</h1>
+<ul>
+<li><strong>小模型</strong>：能做简单的“完形填空”。比如看到“这只猫很”，后面可以接一个“温顺”。但是不具备推理能力。</li>
+<li><strong>大模型</strong>：当参数量突破某个临界点，模型好像开始“顿悟”了。</li>
+</ul>
+<p>由于大模型有个足够的参数来存储复杂的模式和逻辑链，就好像人开发了更大的脑容量一样，就好像电影《超体》。</p>
+<p>注意力机制中的 Q/K/V，直觉去比拟的话，就像 Question 在巨大的知识库里找到相关的 Key，并提取出对应的 Value。当这个知识库大到包含了人类的大部分知识时，它就能通过组合这些知识来完成新任务。</p>
+<h1 id="上下文学习">上下文学习</h1>
+<p>提示词（Prompt）就是激发大模型隐藏状态的“咒语”。</p>
+<ol>
+<li><strong>零样本学习</strong>：</li>
+</ol>
+<p>直接问：“把「你好」翻译成韩语。”</p>
+<p>模型在训练时见过无数“指令-执行”的文本，学会了<strong>遵循指令</strong>的模式。不需要例子的情况下，也能照做并完成新任务。</p>
+<ol start="2">
+<li><strong>少样本学习</strong></li>
+</ol>
+<p>给模型几个例子：</p>
+<ul>
+<li>“苹果 -&gt; 사과”</li>
+<li>“跑 -&gt; 뛰다”</li>
+<li>“现在请翻译：吃”</li>
+</ul>
+<p>模型内部的归纳头（Induction Head）被激活，识别出这是“一种映射规律”，并把这种规律应用到新的输入上。推理并完成新任务。</p>
+<p>上下文工程由此被催生。</p>
+<ul>
+<li>
+<p><strong>不仅仅是写一句话</strong>：现在的工程不仅仅是写一个好的提示词，更是构建一个<strong>动态系统</strong>。</p>
+</li>
+<li>
+<p><strong>组装上下文</strong>：在调用模型前，系统可能会加载系统提示词、检索知识库进行增强（RAG）、读取 Skills、提供工具定义等。</p>
+</li>
+<li>
+<p><strong>成本与效率</strong>：在有限的上下文窗口内，塞进最有用的信息变成了系统追求的目标。</p>
+</li>
+</ul>
+<h1 id="总结">总结</h1>
+<p>大模型之所以能做好推理工作，是因为这些任务的本质逻辑已被“压缩”进了它在预训练阶段进行下一个词预测的概率分布中。</p>
+<p>提示词工程作为新的“产业”，是因为我们发现通过精心设计的“上下文”可以在不重新训练模型的情况下，激发大模型的隐藏状态，指挥大模型完成推理并解决问题。</p>
+
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">小十一狼</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">
+        2026-02-27
+        
+    </span>
+  </p>
+  
+  
+</div>
+<footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/llm/">llm</a>
+          </div>
+      <nav class="post-nav">
+        
+        <a class="next" href="/post/%E5%9F%BA%E4%BA%8Eclaude%E7%9A%84lifesystem/">
+            <span class="next-text nav-default">基于Claude的LifeSystem</span>
+            <span class="next-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+
+  
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:2367785195@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://github.com/littleeleventhwolf" class="iconfont icon-github" title="github"></a>
+      <a href="https://weibo.com/u/2430523233" class="iconfont icon-weibo" title="weibo"></a>
+      <a href="https://www.zhihu.com/people/xiao-shi-yilang-19-67" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://space.bilibili.com/49799259" class="iconfont icon-bilibili" title="bilibili"></a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    由 <a class="hexo-link" href="https://gohugo.io">Hugo</a> 强力驱动
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    主题 - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    2017 - 
+    2026<span class="heart"><i class="iconfont icon-heart"></i></span><span></span>
+  </span>
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js" integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin="anonymous"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
