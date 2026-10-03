@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>[译]粗略估算Flink集群的容量 - 技术札记</title>
@@ -25,7 +25,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.155.3 with theme even" />
+<meta name="generator" content="Hugo 0.167.0 with theme even" />
 
 
 <link rel="canonical" href="http://localhost:1313/post/%E8%AF%91%E7%B2%97%E7%95%A5%E4%BC%B0%E7%AE%97flink%E9%9B%86%E7%BE%A4%E7%9A%84%E5%AE%B9%E9%87%8F/" />
@@ -37,32 +37,32 @@
 
 
 
-<link href="/sass/main.min.af7fd1da18d66c2b017df5b4cae508ef44cfcac3fb4c7c7a327fe4f4f9e28b08.css" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
 
 
 <meta property="og:url" content="http://localhost:1313/post/%E8%AF%91%E7%B2%97%E7%95%A5%E4%BC%B0%E7%AE%97flink%E9%9B%86%E7%BE%A4%E7%9A%84%E5%AE%B9%E9%87%8F/">
-  <meta property="og:site_name" content="技术札记">
-  <meta property="og:title" content="[译]粗略估算Flink集群的容量">
-  <meta property="og:description" content="原文：How To Size Your Apache Flink® Cluster: A Back-of-the-Envelope Calculation
+	<meta property="og:site_name" content="技术札记">
+	<meta property="og:title" content="[译]粗略估算Flink集群的容量">
+	<meta property="og:description" content="原文：How To Size Your Apache Flink® Cluster: A Back-of-the-Envelope Calculation
 一个常被问到的问题是当从开发环境到线上环境的过程中如何估算Flink集群大小。一般得到的回答都是&#34;视情况而定&#34;，但这毫无帮助。这篇文章罗列一些问答，给出一些数字来帮助我们进行Flink集群的估算。">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="post">
-    <meta property="article:published_time" content="2022-05-11T13:49:01+08:00">
-    <meta property="article:modified_time" content="2022-05-11T13:49:01+08:00">
-    <meta property="article:tag" content="Flink">
+	<meta property="og:locale" content="zh_cn">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="post">
+		<meta property="article:published_time" content="2022-05-11T13:49:01+08:00">
+		<meta property="article:modified_time" content="2022-05-11T13:49:01+08:00">
+		<meta property="article:tag" content="Flink">
 
-  <meta itemprop="name" content="[译]粗略估算Flink集群的容量">
-  <meta itemprop="description" content="原文：How To Size Your Apache Flink® Cluster: A Back-of-the-Envelope Calculation
+	<meta itemprop="name" content="[译]粗略估算Flink集群的容量">
+	<meta itemprop="description" content="原文：How To Size Your Apache Flink® Cluster: A Back-of-the-Envelope Calculation
 一个常被问到的问题是当从开发环境到线上环境的过程中如何估算Flink集群大小。一般得到的回答都是&#34;视情况而定&#34;，但这毫无帮助。这篇文章罗列一些问答，给出一些数字来帮助我们进行Flink集群的估算。">
-  <meta itemprop="datePublished" content="2022-05-11T13:49:01+08:00">
-  <meta itemprop="dateModified" content="2022-05-11T13:49:01+08:00">
-  <meta itemprop="wordCount" content="3611">
-  <meta itemprop="keywords" content="flink">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="[译]粗略估算Flink集群的容量">
-  <meta name="twitter:description" content="原文：How To Size Your Apache Flink® Cluster: A Back-of-the-Envelope Calculation
+	<meta itemprop="datePublished" content="2022-05-11T13:49:01+08:00">
+	<meta itemprop="dateModified" content="2022-05-11T13:49:01+08:00">
+	<meta itemprop="wordCount" content="3611">
+	<meta itemprop="keywords" content="flink">
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:title" content="[译]粗略估算Flink集群的容量">
+	<meta name="twitter:description" content="原文：How To Size Your Apache Flink® Cluster: A Back-of-the-Envelope Calculation
 一个常被问到的问题是当从开发环境到线上环境的过程中如何估算Flink集群大小。一般得到的回答都是&#34;视情况而定&#34;，但这毫无帮助。这篇文章罗列一些问答，给出一些数字来帮助我们进行Flink集群的估算。">
 
 <!--[if lte IE 9]>

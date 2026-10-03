@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>[译]牢记4个关于定时器的属性 - 技术札记</title>
@@ -25,7 +25,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.155.3 with theme even" />
+<meta name="generator" content="Hugo 0.167.0 with theme even" />
 
 
 <link rel="canonical" href="http://localhost:1313/post/%E8%AF%91%E7%89%A2%E8%AE%B04%E4%B8%AA%E5%85%B3%E4%BA%8E%E5%AE%9A%E6%97%B6%E5%99%A8%E7%9A%84%E5%B1%9E%E6%80%A7/" />
@@ -37,32 +37,32 @@
 
 
 
-<link href="/sass/main.min.af7fd1da18d66c2b017df5b4cae508ef44cfcac3fb4c7c7a327fe4f4f9e28b08.css" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
 
 
 <meta property="og:url" content="http://localhost:1313/post/%E8%AF%91%E7%89%A2%E8%AE%B04%E4%B8%AA%E5%85%B3%E4%BA%8E%E5%AE%9A%E6%97%B6%E5%99%A8%E7%9A%84%E5%B1%9E%E6%80%A7/">
-  <meta property="og:site_name" content="技术札记">
-  <meta property="og:title" content="[译]牢记4个关于定时器的属性">
-  <meta property="og:description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind
+	<meta property="og:site_name" content="技术札记">
+	<meta property="og:title" content="[译]牢记4个关于定时器的属性">
+	<meta property="og:description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind
 这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction算子中可以访问流处理应用中基础的构建块：">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="post">
-    <meta property="article:published_time" content="2022-05-20T12:19:35+08:00">
-    <meta property="article:modified_time" content="2022-05-20T12:19:35+08:00">
-    <meta property="article:tag" content="Flink">
+	<meta property="og:locale" content="zh_cn">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="post">
+		<meta property="article:published_time" content="2022-05-20T12:19:35+08:00">
+		<meta property="article:modified_time" content="2022-05-20T12:19:35+08:00">
+		<meta property="article:tag" content="Flink">
 
-  <meta itemprop="name" content="[译]牢记4个关于定时器的属性">
-  <meta itemprop="description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind
+	<meta itemprop="name" content="[译]牢记4个关于定时器的属性">
+	<meta itemprop="description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind
 这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction算子中可以访问流处理应用中基础的构建块：">
-  <meta itemprop="datePublished" content="2022-05-20T12:19:35+08:00">
-  <meta itemprop="dateModified" content="2022-05-20T12:19:35+08:00">
-  <meta itemprop="wordCount" content="1274">
-  <meta itemprop="keywords" content="flink">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="[译]牢记4个关于定时器的属性">
-  <meta name="twitter:description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind
+	<meta itemprop="datePublished" content="2022-05-20T12:19:35+08:00">
+	<meta itemprop="dateModified" content="2022-05-20T12:19:35+08:00">
+	<meta itemprop="wordCount" content="1274">
+	<meta itemprop="keywords" content="flink">
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:title" content="[译]牢记4个关于定时器的属性">
+	<meta name="twitter:description" content="原文：4 characteristics of Timers in Apache Flink to keep in mind
 这篇博客讲述Apache Flink中关于使用定时器的一些基础概念和需要考虑的点。在ProcessFunction算子中可以访问流处理应用中基础的构建块：">
 
 <!--[if lte IE 9]>

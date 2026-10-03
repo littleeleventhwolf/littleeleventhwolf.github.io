@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>从DSec的LS/BE分类，学习SCHED_IDLE和Core Scheduling - 技术札记</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="小十一狼" /><meta name="description" content="DSec 面对的是大规模 Agent 沙盒，沙盒在等待 LLM 生成下一步动作时，CPU 使用率很低，所以可以进行资源超卖（在一台物理机上跑大量沙盒实例，并且分配出去的虚拟资源总和超过物理资源上限）。
+" /><meta name="keywords" content="linux" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.167.0 with theme even" />
+
+
+<link rel="canonical" href="http://localhost:1313/post/%E4%BB%8Edsec%E7%9A%84ls-be%E5%88%86%E7%B1%BB%E5%AD%A6%E4%B9%A0sched_idle%E5%92%8Ccore-scheduling/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
+
+
+<meta property="og:url" content="http://localhost:1313/post/%E4%BB%8Edsec%E7%9A%84ls-be%E5%88%86%E7%B1%BB%E5%AD%A6%E4%B9%A0sched_idle%E5%92%8Ccore-scheduling/">
+	<meta property="og:site_name" content="技术札记">
+	<meta property="og:title" content="从DSec的LS/BE分类，学习SCHED_IDLE和Core Scheduling">
+	<meta property="og:description" content="DSec 面对的是大规模 Agent 沙盒，沙盒在等待 LLM 生成下一步动作时，CPU 使用率很低，所以可以进行资源超卖（在一台物理机上跑大量沙盒实例，并且分配出去的虚拟资源总和超过物理资源上限）。">
+	<meta property="og:locale" content="zh_cn">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="post">
+		<meta property="article:published_time" content="2026-10-03T14:09:26+08:00">
+		<meta property="article:modified_time" content="2026-10-03T14:09:26+08:00">
+		<meta property="article:tag" content="Linux">
+
+	<meta itemprop="name" content="从DSec的LS/BE分类，学习SCHED_IDLE和Core Scheduling">
+	<meta itemprop="description" content="DSec 面对的是大规模 Agent 沙盒，沙盒在等待 LLM 生成下一步动作时，CPU 使用率很低，所以可以进行资源超卖（在一台物理机上跑大量沙盒实例，并且分配出去的虚拟资源总和超过物理资源上限）。">
+	<meta itemprop="datePublished" content="2026-10-03T14:09:26+08:00">
+	<meta itemprop="dateModified" content="2026-10-03T14:09:26+08:00">
+	<meta itemprop="wordCount" content="2801">
+	<meta itemprop="keywords" content="linux">
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:title" content="从DSec的LS/BE分类，学习SCHED_IDLE和Core Scheduling">
+	<meta name="twitter:description" content="DSec 面对的是大规模 Agent 沙盒，沙盒在等待 LLM 生成下一步动作时，CPU 使用率很低，所以可以进行资源超卖（在一台物理机上跑大量沙盒实例，并且分配出去的虚拟资源总和超过物理资源上限）。">
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">技术札记</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">首页</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">文章</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">标签</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">分类</li>
+      </a>
+  </ul>
+
+  
+
+
+</nav>
+
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">技术札记</a>
+</div>
+
+
+
+
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">首页</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">文章</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">标签</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">分类</a>
+      </li>
+  </ul>
+</nav>
+
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">从DSec的LS/BE分类，学习SCHED_IDLE和Core Scheduling</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2026-10-03 </span>
+        <div class="post-category">
+            <a href="/categories/linux/"> linux </a>
+            </div>
+        
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#sched_idle让-be-任务有空才跑">SCHED_IDLE：让 BE 任务“有空才跑”</a>
+      <ul>
+        <li><a href="#设置方式">设置方式</a></li>
+        <li><a href="#sched_idle-约束">SCHED_IDLE 约束</a></li>
+      </ul>
+    </li>
+    <li><a href="#为什么-sched_idle-不够因为同一物理核上的资源争用管不到">为什么 SCHED_IDLE 不够？因为同一物理核上的资源争用管不到</a></li>
+    <li><a href="#core-scheduling按-cookie-做同核隔离">Core Scheduling：按 Cookie 做同核隔离</a>
+      <ul>
+        <li><a href="#设置方式-1">设置方式</a></li>
+        <li><a href="#core-scheduling-约束">Core Scheduling 约束</a></li>
+      </ul>
+    </li>
+    <li><a href="#回到-dsec-的两层-qos">回到 DSec 的两层 QoS</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+    <div class="post-content">
+      <p>DSec 面对的是大规模 Agent 沙盒，沙盒在等待 LLM 生成下一步动作时，CPU 使用率很低，所以可以进行资源超卖（在一台物理机上跑大量沙盒实例，并且分配出去的虚拟资源总和超过物理资源上限）。</p>
+<p>原文如下：</p>
+<blockquote>
+<p><strong>Sandboxes must run at high density.</strong> During agent interaction, a sandbox often waits for the LLM to generate the next action, so CPU usage is sparse and naturally suitable for overcommit.</p>
+</blockquote>
+<p>解读：Agent 沙盒大部分时间在等 LLM 返回，CPU 实际占用很稀疏，所以可以在一台机器上挤很多个沙盒——这就是“超卖”的前提。</p>
+<p>但高密度意味着不同沙盒会共享同一个节点、同一物理核、同一 SMT 线程。于是出现两类问题：</p>
+<ol>
+<li>低优先级任务抢占 CPU 时间；</li>
+<li>低优先级任务和高优先级任务若分配在同一物理核上的两个 SMT 线程上将产生资源争用。</li>
+</ol>
+<p>论文中把沙盒分为 latency-sensitive（<strong>LS</strong>，延迟敏感）和 best-effort（<strong>BE</strong>，尽力而为）两类，再用 <strong>SCHED_IDLE + Core Scheduling</strong> 做两层隔离，来达到尽量减少这种抢占/争用的问题。</p>
+<p>原文如下：</p>
+<blockquote>
+<p><strong>QoS-aware CPU scheduling.</strong> To eliminate SMT-level CPU interference, DSec classifies sandboxes into latency-sensitive (LS) and best-effort (BE) classes.</p>
+</blockquote>
+<p>解读：DSec 是按“对延迟的容忍度”分类。LS 沙盒每步延迟必须可控（比如正在和用户交互的 Agent），BE 沙盒可以慢慢跑（比如后台数据处理）。</p>
+<blockquote>
+<p>BE sandboxes are placed under <code>SCHED_IDLE</code> so that they yield the CPU whenever an LS task is runnable.</p>
+</blockquote>
+<p>解读：BE 沙盒被设为 SCHED_IDLE，意思是“只要系统里有 LS 任务想跑，BE 就立刻让出 CPU”。</p>
+<blockquote>
+<p>Because scheduler priority alone does not prevent interference between sibling hardware threads, we also enable Linux core scheduling (<a href="https://docs.kernel.org/admin-guide/hw-vuln/core-scheduling.html">Zijlstra et al., 2021</a>) for LS sandboxes, preventing unrelated BE work from running on the sibling thread of the same physical core.</p>
+</blockquote>
+<p>解读：这是比较关键的一句，描述了两件事：</p>
+<ol>
+<li><strong>光靠调度优先级不够</strong>——因为 SMT 兄弟线程上的干扰不是“谁先被调度”的问题，而是“两个任务同时跑在同一个物理核上”的问题；</li>
+<li><strong>Core Scheduling 补上了这个缺口</strong>——它阻止 BE 任务跑到 LS 任务所在物理核的另一个 SMT 线程上。</li>
+</ol>
+<blockquote>
+<p>This two-layer policy preserves LS per-step latency budgets while still allowing BE tasks to use idle cycles, reducing SMT-induced latency inflation from 45.2% to 17.3%, as detailed in §8.5.</p>
+</blockquote>
+<p>解读：两层策略的效果是——LS 沙盒的每步延迟预算保住了，BE 沙盒仍然能在系统空闲时利用 CPU 周期。SMT 导致的延迟膨胀从 45.2% 降到了 17.3%。</p>
+<p>实现方式上，论文也明确说没有改内核：</p>
+<blockquote>
+<p>For CPU QoS, we set best-effort tasks to <code>SCHED_IDLE</code> and enable core scheduling via <code>prctl(PR_SCHED_CORE)</code> to group tasks by QoS class. No kernel modifications are required; the implementation consists entirely of configuration and integration with our sandbox orchestrator.</p>
+</blockquote>
+<p>解读：DSec 没有修改内核代码，只是通过配置+沙盒编排来实现的。这意味着这套方案可以直接用在现有 Linux 内核上，不需要打补丁。</p>
+<h1 id="sched_idle让-be-任务有空才跑">SCHED_IDLE：让 BE 任务“有空才跑”</h1>
+<p>SCHED_IDLE 是 Linux CFS 里的最低优先级调度策略。它不是调高 nice 值来降低优先级，而是直接在调度类层面被放在最后。</p>
+<p>SCHED_IDLE 和 SCHED_NORMAL 都在同一个调度类 <code>fair_sched_class</code> 里，SCHED_IDLE 不是“nice 值更低的 SCHED_NORMAL”，而是 CFS 里一种最低优先级调度策略。nice 值管的是 SCHED_NORMAL 内部的权重分配。</p>
+<p>SCHED_IDLE 的行为是，只要系统里有 SCHED_NORMAL、SCHED_BATCH、实时任务、deadline 任务等可运行，SCHED_IDLE 就不该抢 CPU；只有这些任务都不可运行或不需要 CPU 时，它才获得调度机会。</p>
+<h2 id="设置方式">设置方式</h2>
+<p><strong>chrt 命令</strong>：</p>
+<p>chrt 是 Linux 用于查看或修改进程的调度策略核优先级的命令行工具。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 将指定进程设为 SCHED_IDLE 策略</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># -i 表示 SCHED_IDLE</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># -p 表示操作已有进程</span>
+</span></span><span class="line"><span class="cl">chrt -i -p &lt;pid&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 查看某个进程当前的调度策略和优先级</span>
+</span></span><span class="line"><span class="cl">chrt -p &lt;pid&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>cgroup v2 接口</strong>：</p>
+<p>cgroup v2 提供了 cpu.idle 文件，写入 1 表示该 cgroup 下所有任务使用 SCHED_IDLE 语义。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 将某个 cgroup 下的所有任务设为 idle 调度</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="m">1</span> &gt; /sys/fs/cgroup/be-group/cpu.idle
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>C 代码调用 sched_setscheduler</strong>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sched.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">sched_param</span> <span class="n">param</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">sched_priority</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">};</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 将当前进程（pid=0 表示自身）设为 SCHED_IDLE
+</span></span></span><span class="line"><span class="cl"><span class="c1">// SCHED_IDLE 要求 sched_priority 必须为 0
+</span></span></span><span class="line"><span class="cl"><span class="nf">sched_setscheduler</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">SCHED_IDLE</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">param</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="sched_idle-约束">SCHED_IDLE 约束</h2>
+<ul>
+<li>sched_priority 必须为 0；</li>
+<li>nice 值对它无效；</li>
+<li>解决的是“BE 任务在 CPU 就绪队列里抢 LS 任务”的问题；</li>
+<li>不能解决 SMT 兄弟线程上的干扰；</li>
+<li>适合“可以无限延后”的任务，不适合需要稳定吞吐的任务。</li>
+</ul>
+<h1 id="为什么-sched_idle-不够因为同一物理核上的资源争用管不到">为什么 SCHED_IDLE 不够？因为同一物理核上的资源争用管不到</h1>
+<p>SMT（Simultaneous Multithreading，Intel 称 Hyper Threading）让一个物理核心对外呈现两个逻辑 CPU。这两个逻辑核共享 L1/L2 缓存、执行单元、分支预测器、Load/Store 队列等资源。</p>
+<p>问题在于：</p>
+<ul>
+<li>LS 任务跑在某个逻辑 CPU 上；</li>
+<li>BE 任务跑在该逻辑 CPU 的 SMT 兄弟线程上；</li>
+<li>两者共享同一个物理核的硬件资源；</li>
+<li>即使 BE 是 SCHED_IDLE，它一旦获得 CPU，就会在硬件层面拖慢 LS。</li>
+</ul>
+<p>所以论文说：</p>
+<blockquote>
+<p>Because scheduler priority alone does not prevent interference between sibling hardware threads, we also enable Linux core scheduling &hellip;</p>
+</blockquote>
+<p>解读：调度优先级只能决定“谁先被选到 CPU 上”，但一旦两个任务分别跑在同一个物理核的两个 SMT 线程上，它们就会共享执行资源——这是优先级机制管不到的层面。</p>
+<h1 id="core-scheduling按-cookie-做同核隔离">Core Scheduling：按 Cookie 做同核隔离</h1>
+<p>Core Scheduling 是 Linux 5.14 引入的机制，需要内核开启 CONFIG_SCHED_CORE。</p>
+<p>内核会给任务分配一个内部 Core Scheduling Cookie，这是一个 64 位标识符，代表任务所属的调度信任域。以 LS 和 BE 为例，如果把所有 LS 任务设为同一个 Cookie，所有 BE 任务设为另一个 Cookie，那么 LS 和 BE 就不会同时运行在同一个物理核的 SMT 线程上：</p>
+<ul>
+<li>同一个物理核上的所有 SMT 线程，同一时刻只能运行具有相同 Cookie 的任务；</li>
+<li>如果某个 SMT 线程没有匹配 Cookie 的任务可跑，会强制进入空闲；</li>
+<li>内核的空闲线程被视为全局可信，因此没有匹配 Cookie 的任务时，通常会回退到空闲线程。</li>
+</ul>
+<h2 id="设置方式-1">设置方式</h2>
+<p><strong>prctl 接口</strong>：</p>
+<p>prctl 是 Linux 系统调用，用于对当前进程执行各种控制操作。PR_SCHED_CORE 是其中一个操作码，专门用于管理 core scheduling cookie：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;sys/prctl.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* 为当前进程创建一个新的 core scheduling cookie */</span>
+</span></span><span class="line"><span class="cl"><span class="nf">prctl</span><span class="p">(</span><span class="n">PR_SCHED_CORE</span><span class="p">,</span> <span class="n">PR_SCHED_CORE_CREATE</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">PIDTYPE_PID</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* 将当前进程的 cookie 共享给目标进程 */</span>
+</span></span><span class="line"><span class="cl"><span class="nf">prctl</span><span class="p">(</span><span class="n">PR_SCHED_CORE</span><span class="p">,</span> <span class="n">PR_SCHED_CORE_SHARE_TO</span><span class="p">,</span> <span class="n">target_pid</span><span class="p">,</span> <span class="n">PIDTYPE_PID</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/* 从目标进程拉取 cookie 到当前进程 */</span>
+</span></span><span class="line"><span class="cl"><span class="nf">prctl</span><span class="p">(</span><span class="n">PR_SCHED_CORE</span><span class="p">,</span> <span class="n">PR_SCHED_CORE_SHARE_FROM</span><span class="p">,</span> <span class="n">target_pid</span><span class="p">,</span> <span class="n">PIDTYPE_PID</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这三个操作的关系是——先 CREATE 创建一个新 cookie，然后用 SHARE_TO/SHARE_FROM 把其他进程加入同一个 cookie 组。同一组的进程同一时刻可以跑在同一物理核的 SMT 线程上。</p>
+<p>第四个参数可以取 PIDTYPE_PID（按单个进程）或 PIDTYPE_TGID（按线程组，即整个进程的所有线程）。</p>
+<p><strong>cgroup v2 接口</strong>：</p>
+<p>cgroup v2 下可通过 cpu.core_sched 控制。写入 1 表示该 cgroup 启用 core scheduling，内核会为这个 cgroup 分配一个独立的 cookie：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 为 LS 组启用 core scheduling，内核分配 cookie A</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="m">1</span> &gt; /sys/fs/cgroup/ls-group/cpu.core_sched
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 为 BE 组启用 core scheduling，内核分配 cookie B</span>
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="m">1</span> &gt; /sys/fs/cgroup/be-group/cpu.core_sched
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 结果：cookie A &lt;&gt; cookie B，两组任务不能在同一物理核的 SMT 线程上同时运行</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>cgroup 方式比 prctl 更简洁——每个 cgroup 自动获得独立 cookie，不需要手动管理共享关系。</p>
+<h2 id="core-scheduling-约束">Core Scheduling 约束</h2>
+<ul>
+<li>需要内核启用 CONFIG_SCHED_CORE，通常 Linux 5.14+ 才支持；</li>
+<li>只在开启 SMT 的机器上有意义；</li>
+<li>Cookie 不匹配时会触发 Forced Idle，可能降低整体吞吐；</li>
+<li>Core Scheduling 主要隔离 SMT 层面的干扰，不能解决内存带宽、睿频、L3 Cache 等跨核干扰。</li>
+</ul>
+<h1 id="回到-dsec-的两层-qos">回到 DSec 的两层 QoS</h1>
+<table>
+<tr>
+<th>问题</th>
+<th>机制</th>
+<th>效果</th>
+</tr>
+<tr>
+<td>BE 任务抢占 LS 任务的 CPU 时间</td>
+<td>SCHED_IDLE</td>
+<td>BE 在 LS 可运行时让出 CPU</td>
+</tr>
+<tr>
+<td>BE 任务通过 SMT 干扰 LS</td>
+<td>Core Scheduling</td>
+<td>BE 和 LS 分配不同 core scheduling cookie，不共享同一物理核的 SMT 线程</td>
+</tr>
+<tr>
+<td>剩余延迟</td>
+<td>睿频、内存带宽、Last-Level Cache</td>
+<td>论文未进一步做内存带宽隔离</td>
+</tr>
+</table>
+<p>论文中也有总结：</p>
+<blockquote>
+<p>The improvement grows as BE contention increases. These results validate the two-level CPU QoS design in §5.2: <code>SCHED_IDLE</code> prioritizes LS tasks, while core scheduling isolates them from BE work on sibling SMT threads.</p>
+</blockquote>
+<p>BE 负载越高，两层策略的收益越明显。SCHED_IDLE 负责“优先级”，Core Scheduling 负责“SMT 隔离”，两者缺一不可。</p>
+
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">小十一狼</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">
+        2026-10-03
+        
+    </span>
+  </p>
+  
+  
+</div>
+<footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/linux/">linux</a>
+          </div>
+      <nav class="post-nav">
+        
+        <a class="next" href="/post/%E9%9B%B6%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0%E5%92%8C%E5%B0%91%E6%A0%B7%E6%9C%AC%E5%AD%A6%E4%B9%A0%E7%9A%84%E8%83%BD%E5%8A%9B%E6%9D%A5%E8%87%AA%E5%93%AA%E9%87%8C/">
+            <span class="next-text nav-default">零样本学习和少样本学习的能力来自哪里?</span>
+            <span class="next-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+
+  
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:2367785195@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://github.com/littleeleventhwolf" class="iconfont icon-github" title="github"></a>
+      <a href="https://weibo.com/u/2430523233" class="iconfont icon-weibo" title="weibo"></a>
+      <a href="https://www.zhihu.com/people/xiao-shi-yilang-19-67" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://space.bilibili.com/49799259" class="iconfont icon-bilibili" title="bilibili"></a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    由 <a class="hexo-link" href="https://gohugo.io">Hugo</a> 强力驱动
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    主题 - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    2017 - 
+    2026<span class="heart"><i class="iconfont icon-heart"></i></span><span></span>
+  </span>
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js" integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin="anonymous"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

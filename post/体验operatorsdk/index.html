@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>体验OperatorSDK - 技术札记</title>
@@ -24,7 +24,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.155.3 with theme even" />
+<meta name="generator" content="Hugo 0.167.0 with theme even" />
 
 
 <link rel="canonical" href="http://localhost:1313/post/%E4%BD%93%E9%AA%8Coperatorsdk/" />
@@ -36,30 +36,30 @@
 
 
 
-<link href="/sass/main.min.af7fd1da18d66c2b017df5b4cae508ef44cfcac3fb4c7c7a327fe4f4f9e28b08.css" rel="stylesheet">
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
 
 
 <meta property="og:url" content="http://localhost:1313/post/%E4%BD%93%E9%AA%8Coperatorsdk/">
-  <meta property="og:site_name" content="技术札记">
-  <meta property="og:title" content="体验OperatorSDK">
-  <meta property="og:description" content="前言 本文的代码样例来自 O’REILLY《Kubernetes 编程》第 6 章 编写 Operator 方案 6.4 小节的内容。由于该书出版时，Operator SDK 还处于发展阶段，所以自己在按步骤操作时，还是发现了很多不一样的地方，因此做此记录。">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="post">
-    <meta property="article:published_time" content="2026-02-20T11:27:01+08:00">
-    <meta property="article:modified_time" content="2026-02-20T11:27:01+08:00">
-    <meta property="article:tag" content="Kubernetes">
+	<meta property="og:site_name" content="技术札记">
+	<meta property="og:title" content="体验OperatorSDK">
+	<meta property="og:description" content="前言 本文的代码样例来自 O’REILLY《Kubernetes 编程》第 6 章 编写 Operator 方案 6.4 小节的内容。由于该书出版时，Operator SDK 还处于发展阶段，所以自己在按步骤操作时，还是发现了很多不一样的地方，因此做此记录。">
+	<meta property="og:locale" content="zh_cn">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="post">
+		<meta property="article:published_time" content="2026-02-20T11:27:01+08:00">
+		<meta property="article:modified_time" content="2026-02-20T11:27:01+08:00">
+		<meta property="article:tag" content="Kubernetes">
 
-  <meta itemprop="name" content="体验OperatorSDK">
-  <meta itemprop="description" content="前言 本文的代码样例来自 O’REILLY《Kubernetes 编程》第 6 章 编写 Operator 方案 6.4 小节的内容。由于该书出版时，Operator SDK 还处于发展阶段，所以自己在按步骤操作时，还是发现了很多不一样的地方，因此做此记录。">
-  <meta itemprop="datePublished" content="2026-02-20T11:27:01+08:00">
-  <meta itemprop="dateModified" content="2026-02-20T11:27:01+08:00">
-  <meta itemprop="wordCount" content="3053">
-  <meta itemprop="keywords" content="kubernetes">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="体验OperatorSDK">
-  <meta name="twitter:description" content="前言 本文的代码样例来自 O’REILLY《Kubernetes 编程》第 6 章 编写 Operator 方案 6.4 小节的内容。由于该书出版时，Operator SDK 还处于发展阶段，所以自己在按步骤操作时，还是发现了很多不一样的地方，因此做此记录。">
+	<meta itemprop="name" content="体验OperatorSDK">
+	<meta itemprop="description" content="前言 本文的代码样例来自 O’REILLY《Kubernetes 编程》第 6 章 编写 Operator 方案 6.4 小节的内容。由于该书出版时，Operator SDK 还处于发展阶段，所以自己在按步骤操作时，还是发现了很多不一样的地方，因此做此记录。">
+	<meta itemprop="datePublished" content="2026-02-20T11:27:01+08:00">
+	<meta itemprop="dateModified" content="2026-02-20T11:27:01+08:00">
+	<meta itemprop="wordCount" content="3053">
+	<meta itemprop="keywords" content="kubernetes">
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:title" content="体验OperatorSDK">
+	<meta name="twitter:description" content="前言 本文的代码样例来自 O’REILLY《Kubernetes 编程》第 6 章 编写 Operator 方案 6.4 小节的内容。由于该书出版时，Operator SDK 还处于发展阶段，所以自己在按步骤操作时，还是发现了很多不一样的地方，因此做此记录。">
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -753,7 +753,7 @@
 </span></span></span><span class="line"><span class="cl"><span class="c1">// the At object against the actual cluster state, and then</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="c1">// perform operations to make the cluster state reflect the state specified by</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="c1">// the user.</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="c1">//
+</span></span></span><span class="line"><span class="cl"><span class="c1">//</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="c1">// For more details, check Reconcile and its Result here:</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="c1">// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.21.0/pkg/reconcile</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><span class="nx">AtReconciler</span><span class="p">)</span><span class="w"> </span><span class="nf">Reconcile</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">req</span><span class="w"> </span><span class="nx">ctrl</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">ctrl</span><span class="p">.</span><span class="nx">Result</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
