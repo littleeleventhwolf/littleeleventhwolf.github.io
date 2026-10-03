@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>Pandas on 技术札记</title>
+		<link>http://localhost:1313/tags/pandas/</link>
+		<description>Recent content in Pandas on 技术札记</description>
+		<generator>Hugo</generator>
+		<language>zh-cn</language>
+		
+		
+		
+		
+			<lastBuildDate>Sat, 03 Oct 2026 18:57:50 +0800</lastBuildDate>
+		
+			<atom:link href="http://localhost:1313/tags/pandas/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>Pandas Merge中NaN行互相匹配引发行数膨胀造成OOM</title>
+				<link>http://localhost:1313/post/pandas-merge%E4%B8%ADnan%E8%A1%8C%E4%BA%92%E7%9B%B8%E5%8C%B9%E9%85%8D%E5%BC%95%E5%8F%91%E8%A1%8C%E6%95%B0%E8%86%A8%E8%83%80%E9%80%A0%E6%88%90oom/</link>
+				<pubDate>Sat, 03 Oct 2026 18:57:50 +0800</pubDate>
+				<guid>http://localhost:1313/post/pandas-merge%E4%B8%ADnan%E8%A1%8C%E4%BA%92%E7%9B%B8%E5%8C%B9%E9%85%8D%E5%BC%95%E5%8F%91%E8%A1%8C%E6%95%B0%E8%86%A8%E8%83%80%E9%80%A0%E6%88%90oom/</guid>
+				<description>&lt;h1 id=&#34;问题现象&#34;&gt;问题现象&lt;/h1&gt;&#xA;&lt;p&gt;前段时间排查了一类作业对内存需求特别大，经常发生 OOM。通过不断增大内存，并观察 py-spy 输出的调用栈，发现调用栈卡在一个逻辑上，逻辑大致如下：读取目录下所有 CSV 文件，解析后按某个字段进行 &lt;code&gt;pd.merge(on=...)&lt;/code&gt;，连接方式是 &lt;code&gt;how=&#39;outer&#39;&lt;/code&gt;。&lt;/p&gt;</description>
+			</item>
+	</channel>
+</rss>

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Pandas Merge中NaN行互相匹配引发行数膨胀造成OOM - 技术札记</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="小十一狼" /><meta name="description" content="问题现象 前段时间排查了一类作业对内存需求特别大，经常发生 OOM。通过不断增大内存，并观察 py-spy 输出的调用栈，发现调用栈卡在一个逻辑上，逻辑大致如下：读取目录下所有 CSV 文件，解析后按某个字段进行 pd.merge(on=...)，连接方式是 how=&#39;outer&#39;。
+" /><meta name="keywords" content="pandas" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.167.0 with theme even" />
+
+
+<link rel="canonical" href="http://localhost:1313/post/pandas-merge%E4%B8%ADnan%E8%A1%8C%E4%BA%92%E7%9B%B8%E5%8C%B9%E9%85%8D%E5%BC%95%E5%8F%91%E8%A1%8C%E6%95%B0%E8%86%A8%E8%83%80%E9%80%A0%E6%88%90oom/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
+
+
+<meta property="og:url" content="http://localhost:1313/post/pandas-merge%E4%B8%ADnan%E8%A1%8C%E4%BA%92%E7%9B%B8%E5%8C%B9%E9%85%8D%E5%BC%95%E5%8F%91%E8%A1%8C%E6%95%B0%E8%86%A8%E8%83%80%E9%80%A0%E6%88%90oom/">
+	<meta property="og:site_name" content="技术札记">
+	<meta property="og:title" content="Pandas Merge中NaN行互相匹配引发行数膨胀造成OOM">
+	<meta property="og:description" content="问题现象 前段时间排查了一类作业对内存需求特别大，经常发生 OOM。通过不断增大内存，并观察 py-spy 输出的调用栈，发现调用栈卡在一个逻辑上，逻辑大致如下：读取目录下所有 CSV 文件，解析后按某个字段进行 pd.merge(on=...)，连接方式是 how=&#39;outer&#39;。">
+	<meta property="og:locale" content="zh_cn">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="post">
+		<meta property="article:published_time" content="2026-10-03T18:57:50+08:00">
+		<meta property="article:modified_time" content="2026-10-03T18:57:50+08:00">
+		<meta property="article:tag" content="Pandas">
+
+	<meta itemprop="name" content="Pandas Merge中NaN行互相匹配引发行数膨胀造成OOM">
+	<meta itemprop="description" content="问题现象 前段时间排查了一类作业对内存需求特别大，经常发生 OOM。通过不断增大内存，并观察 py-spy 输出的调用栈，发现调用栈卡在一个逻辑上，逻辑大致如下：读取目录下所有 CSV 文件，解析后按某个字段进行 pd.merge(on=...)，连接方式是 how=&#39;outer&#39;。">
+	<meta itemprop="datePublished" content="2026-10-03T18:57:50+08:00">
+	<meta itemprop="dateModified" content="2026-10-03T18:57:50+08:00">
+	<meta itemprop="wordCount" content="958">
+	<meta itemprop="keywords" content="pandas">
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:title" content="Pandas Merge中NaN行互相匹配引发行数膨胀造成OOM">
+	<meta name="twitter:description" content="问题现象 前段时间排查了一类作业对内存需求特别大，经常发生 OOM。通过不断增大内存，并观察 py-spy 输出的调用栈，发现调用栈卡在一个逻辑上，逻辑大致如下：读取目录下所有 CSV 文件，解析后按某个字段进行 pd.merge(on=...)，连接方式是 how=&#39;outer&#39;。">
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">技术札记</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">首页</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">文章</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">标签</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">分类</li>
+      </a>
+  </ul>
+
+  
+
+
+</nav>
+
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">技术札记</a>
+</div>
+
+
+
+
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">首页</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">文章</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">标签</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">分类</a>
+      </li>
+  </ul>
+</nav>
+
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Pandas Merge中NaN行互相匹配引发行数膨胀造成OOM</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2026-10-03 </span>
+        <div class="post-category">
+            <a href="/categories/pandas/"> pandas </a>
+            </div>
+        
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#问题现象">问题现象</a></li>
+    <li><a href="#根因分析">根因分析</a></li>
+    <li><a href="#对照实验">对照实验</a>
+      <ul>
+        <li><a href="#1-造数据">1. 造数据</a></li>
+        <li><a href="#2-pandas-结果">2. Pandas 结果</a></li>
+        <li><a href="#3-sql-对照">3. SQL 对照</a></li>
+      </ul>
+    </li>
+    <li><a href="#规避与修复">规避与修复</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+    <div class="post-content">
+      <h1 id="问题现象">问题现象</h1>
+<p>前段时间排查了一类作业对内存需求特别大，经常发生 OOM。通过不断增大内存，并观察 py-spy 输出的调用栈，发现调用栈卡在一个逻辑上，逻辑大致如下：读取目录下所有 CSV 文件，解析后按某个字段进行 <code>pd.merge(on=...)</code>，连接方式是 <code>how='outer'</code>。</p>
+<h1 id="根因分析">根因分析</h1>
+<p>问题链路如下：</p>
+<ol>
+<li>目录下存在非标准 CSV 文件；</li>
+<li><code>pd.read_csv</code> 解析异常文件时部分字段读取失败；</li>
+<li>用于 <code>merge</code> 的 key 列因此出现大量 <code>NaN</code>；</li>
+<li>Pandas 的 merge 会把左右两边 key 都是 <code>NaN</code> 的行互相匹配；</li>
+<li>两边 <code>NaN</code> key 行数较多时，形成多对多膨胀；</li>
+<li>行数激增，内存失控，触发 OOM。</li>
+</ol>
+<p>所以，总结下来：解析异常导致 <code>merge</code> key 列产生大量 <code>NaN</code>，而 Pandas <code>merge</code> 会把两边 key 都是 <code>NaN</code> 的行互相匹配，与 SQL 中 <code>NULL=NULL</code> 不匹配的行为不同。当两边都有大量 <code>NaN</code> key 时，<code>outer merge</code> 会放大行数。</p>
+<p>我们来对比下 Pandas merge 和 SQL Join 的差异。</p>
+<h1 id="对照实验">对照实验</h1>
+<p>用极简的数据分别在 Pandas 和 SQL 中执行相同语义的 Join，观察行数差异。</p>
+<h2 id="1-造数据">1. 造数据</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 左表 17 行，key 全是 NaN</span>
+</span></span><span class="line"><span class="cl"><span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;join_key&#34;</span><span class="p">:</span> <span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">NA</span><span class="p">]</span> <span class="o">*</span> <span class="mi">17</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;payload_left&#34;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="mi">17</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl"><span class="p">})</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 右表 17 行，key 也全是 NaN</span>
+</span></span><span class="line"><span class="cl"><span class="n">right</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;join_key&#34;</span><span class="p">:</span> <span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">NA</span><span class="p">]</span> <span class="o">*</span> <span class="mi">17</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;payload_right&#34;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="mi">34</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl"><span class="p">})</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="2-pandas-结果">2. Pandas 结果</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">merged</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&#34;join_key&#34;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&#34;outer&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="n">merged</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="c1"># (289, 3) -&gt; 17 * 17</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>两边都是 <code>NaN</code> 时，Pandas 会把它们互相匹配，形成 17*17=289 行的笛卡尔积。</p>
+<h2 id="3-sql-对照">3. SQL 对照</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="err">$</span><span class="w"> </span><span class="n">sqlite3</span><span class="w"> </span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">test</span><span class="p">.</span><span class="n">db</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">SQLite</span><span class="w"> </span><span class="k">version</span><span class="w"> </span><span class="mi">3</span><span class="p">.</span><span class="mi">43</span><span class="p">.</span><span class="mi">2</span><span class="w"> </span><span class="mi">2023</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">10</span><span class="w"> </span><span class="mi">13</span><span class="p">:</span><span class="mi">08</span><span class="p">:</span><span class="mi">14</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">Enter</span><span class="w"> </span><span class="s2">&#34;.help&#34;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="k">usage</span><span class="w"> </span><span class="n">hints</span><span class="p">.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">sqlite</span><span class="o">&gt;</span><span class="w"> </span><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">t_left</span><span class="w"> </span><span class="p">(</span><span class="n">join_key</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w"> </span><span class="n">payload_left</span><span class="w"> </span><span class="nb">INT</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">sqlite</span><span class="o">&gt;</span><span class="w"> </span><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">t_right</span><span class="w"> </span><span class="p">(</span><span class="n">join_key</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w"> </span><span class="n">payload_right</span><span class="w"> </span><span class="nb">INT</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">sqlite</span><span class="o">&gt;</span><span class="w"> </span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">t_left</span><span class="w"> </span><span class="p">(</span><span class="n">join_key</span><span class="p">,</span><span class="w"> </span><span class="n">payload_left</span><span class="p">)</span><span class="w"> </span><span class="k">VALUES</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">...</span><span class="o">&gt;</span><span class="w"> </span><span class="p">(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">2</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">3</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">4</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">5</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">6</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">7</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">...</span><span class="o">&gt;</span><span class="w"> </span><span class="p">(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">9</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">10</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">11</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">12</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">13</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">14</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">15</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">16</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">sqlite</span><span class="o">&gt;</span><span class="w"> </span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">t_right</span><span class="w"> </span><span class="p">(</span><span class="n">join_key</span><span class="p">,</span><span class="w"> </span><span class="n">payload_right</span><span class="p">)</span><span class="w"> </span><span class="k">VALUES</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">...</span><span class="o">&gt;</span><span class="w"> </span><span class="p">(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">17</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">18</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">19</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">20</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">21</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">22</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">23</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">24</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">25</span><span class="p">),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">...</span><span class="o">&gt;</span><span class="w"> </span><span class="p">(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">26</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">27</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">28</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">29</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">30</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">31</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">32</span><span class="p">),(</span><span class="k">NULL</span><span class="p">,</span><span class="mi">33</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">sqlite</span><span class="o">&gt;</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">outer_rows</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">t_left</span><span class="w"> </span><span class="n">l</span><span class="w"> </span><span class="k">FULL</span><span class="w"> </span><span class="k">OUTER</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">t_right</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">l</span><span class="p">.</span><span class="n">join_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">join_key</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="mi">34</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以看到有 34 个，不是笛卡尔积。如下展示全部数据：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="n">sqlite</span><span class="o">&gt;</span><span class="w"> </span><span class="p">.</span><span class="n">headers</span><span class="w"> </span><span class="k">on</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">sqlite</span><span class="o">&gt;</span><span class="w"> </span><span class="p">.</span><span class="k">mode</span><span class="w"> </span><span class="k">table</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">sqlite</span><span class="o">&gt;</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="n">l</span><span class="p">.</span><span class="n">join_key</span><span class="p">,</span><span class="w"> </span><span class="n">l</span><span class="p">.</span><span class="n">payload_left</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">payload_right</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">t_left</span><span class="w"> </span><span class="n">l</span><span class="w"> </span><span class="k">FULL</span><span class="w"> </span><span class="k">OUTER</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">t_right</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">l</span><span class="p">.</span><span class="n">join_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">join_key</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">+</span><span class="c1">----------+--------------+---------------+
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w"> </span><span class="n">join_key</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">payload_left</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">payload_right</span><span class="w"> </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">+</span><span class="c1">----------+--------------+---------------+
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">0</span><span class="w">            </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">1</span><span class="w">            </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">2</span><span class="w">            </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">3</span><span class="w">            </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">4</span><span class="w">            </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">5</span><span class="w">            </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">6</span><span class="w">            </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">7</span><span class="w">            </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">8</span><span class="w">            </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">9</span><span class="w">            </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">10</span><span class="w">           </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">11</span><span class="w">           </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">12</span><span class="w">           </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">13</span><span class="w">           </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">14</span><span class="w">           </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">15</span><span class="w">           </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="mi">16</span><span class="w">           </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">17</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">18</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">19</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">20</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">21</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">22</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">23</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">24</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">25</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">26</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">27</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">28</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">29</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">30</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">31</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">32</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">              </span><span class="o">|</span><span class="w"> </span><span class="mi">33</span><span class="w">            </span><span class="o">|</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="o">+</span><span class="c1">----------+--------------+---------------+
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="规避与修复">规避与修复</h1>
+<p>既然 Pandas <code>merge</code> 在 on <code>NaN</code> 是笛卡尔积，那我们写代码的时候就要注意：不让 <code>NaN</code> key 进入 <code>merge</code>。</p>
+<p><code>merge</code> 前检查 key 列质量：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">for</span> <span class="n">df</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[(</span><span class="n">left</span><span class="p">,</span> <span class="s2">&#34;left&#34;</span><span class="p">),</span> <span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="s2">&#34;right&#34;</span><span class="p">)]:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">null_cnt</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&#34;join_key&#34;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uniq_cnt</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&#34;join_key&#34;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: nulls=</span><span class="si">{</span><span class="n">null_cnt</span><span class="si">}</span><span class="s2">, unique_keys=</span><span class="si">{</span><span class="n">uniq_cnt</span><span class="si">}</span><span class="s2">, rows=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果 key 列存在大量 <code>NaN</code>，应先修复源头。常见处理方式：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># 丢弃 key 为 NaN 的行</span>
+</span></span><span class="line"><span class="cl"><span class="n">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;join_key&#39;</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl"><span class="n">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;join_key&#39;</span><span class="p">])</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">小十一狼</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">
+        2026-10-03
+        
+    </span>
+  </p>
+  
+  
+</div>
+<footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/pandas/">pandas</a>
+          </div>
+      <nav class="post-nav">
+        
+        <a class="next" href="/post/%E4%BB%8Edsec%E7%9A%84ls-be%E5%88%86%E7%B1%BB%E5%AD%A6%E4%B9%A0sched_idle%E5%92%8Ccore-scheduling/">
+            <span class="next-text nav-default">从DSec的LS/BE分类，学习SCHED_IDLE和Core Scheduling</span>
+            <span class="next-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+
+  
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:2367785195@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://github.com/littleeleventhwolf" class="iconfont icon-github" title="github"></a>
+      <a href="https://weibo.com/u/2430523233" class="iconfont icon-weibo" title="weibo"></a>
+      <a href="https://www.zhihu.com/people/xiao-shi-yilang-19-67" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://space.bilibili.com/49799259" class="iconfont icon-bilibili" title="bilibili"></a>
+  
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    由 <a class="hexo-link" href="https://gohugo.io">Hugo</a> 强力驱动
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    主题 - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    2017 - 
+    2026<span class="heart"><i class="iconfont icon-heart"></i></span><span></span>
+  </span>
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js" integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin="anonymous"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
