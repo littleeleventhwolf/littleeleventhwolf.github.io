@@ -55,7 +55,7 @@
 	<meta itemprop="description" content="DSec 面对的是大规模 Agent 沙盒，沙盒在等待 LLM 生成下一步动作时，CPU 使用率很低，所以可以进行资源超卖（在一台物理机上跑大量沙盒实例，并且分配出去的虚拟资源总和超过物理资源上限）。">
 	<meta itemprop="datePublished" content="2026-10-03T14:09:26+08:00">
 	<meta itemprop="dateModified" content="2026-10-03T14:09:26+08:00">
-	<meta itemprop="wordCount" content="2801">
+	<meta itemprop="wordCount" content="2607">
 	<meta itemprop="keywords" content="linux">
 	<meta name="twitter:card" content="summary">
 	<meta name="twitter:title" content="从DSec的LS/BE分类，学习SCHED_IDLE和Core Scheduling">
@@ -328,29 +328,6 @@
 </div>
 </div><p>这三个操作的关系是——先 CREATE 创建一个新 cookie，然后用 SHARE_TO/SHARE_FROM 把其他进程加入同一个 cookie 组。同一组的进程同一时刻可以跑在同一物理核的 SMT 线程上。</p>
 <p>第四个参数可以取 PIDTYPE_PID（按单个进程）或 PIDTYPE_TGID（按线程组，即整个进程的所有线程）。</p>
-<p><strong>cgroup v2 接口</strong>：</p>
-<p>cgroup v2 下可通过 cpu.core_sched 控制。写入 1 表示该 cgroup 启用 core scheduling，内核会为这个 cgroup 分配一个独立的 cookie：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 为 LS 组启用 core scheduling，内核分配 cookie A</span>
-</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="m">1</span> &gt; /sys/fs/cgroup/ls-group/cpu.core_sched
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># 为 BE 组启用 core scheduling，内核分配 cookie B</span>
-</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="m">1</span> &gt; /sys/fs/cgroup/be-group/cpu.core_sched
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># 结果：cookie A &lt;&gt; cookie B，两组任务不能在同一物理核的 SMT 线程上同时运行</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>cgroup 方式比 prctl 更简洁——每个 cgroup 自动获得独立 cookie，不需要手动管理共享关系。</p>
 <h2 id="core-scheduling-约束">Core Scheduling 约束</h2>
 <ul>
 <li>需要内核启用 CONFIG_SCHED_CORE，通常 Linux 5.14+ 才支持；</li>
